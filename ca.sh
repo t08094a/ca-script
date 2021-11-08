@@ -23,7 +23,7 @@ CURRENTCACERT=""            # path to certificate of current used CA
 CURRENTCASERIAL=""          # path to serial of current used CA 
 CURRENTCACRLDIR=""          # path to crl folder of current used CA
 CURRENTCACRLNUMBER=""       # path to crl number of current used CA 
-CURRENTCACRL=""             # path to certivicate revocation list of current used CA 
+CURRENTCACRL=""             # path to certificate revocation list of current used CA 
 CURRENTCAPRIVATEKEY=""      # path to private key of current used CA 
 CURRENTCARANDFILE=""        # path to rand file of current used CA 
 CURRENTCACSRDIR=""          # path to Certificate signing requests files 
@@ -119,9 +119,19 @@ check_ca_file_structure()
     fi
 }
 
+create_root_ca_private_key()
+{
+    openssl genrsa -aes256 -out $CURRENTCAPRIVATEKEY $KEYSIZE
+}
+
+create_root_certificate()
+{
+    openssl req -new -x509 -key $CURRENTCAPRIVATEKEY -out $CURRENTCACERT -set_serial 0
+}
+
 ###############################################################################
 #
-#   INITAL CHECKS
+#   INITIAL CHECKS
 #
 ###############################################################################
 
@@ -179,7 +189,7 @@ fi
 #
 GREET="LinuxM0nk3y's Certificate Authority Management\n\t\t\t\tVersion $VERSION"
 # Strings for the main menu
-MAINMENU=("Create a self signed certificate" "Create a certificate signing request" "Create a certificate revocation list" "Sign a certificate" "Revoke a certificate" "Verify a certificate" "Print content of a certificate" "Export a certificate to PKCS#12" "Change CA" "Split private key" "Combine private key" "Shred private key" "Quit")
+MAINMENU=("Create root-ca private key" "Create root-ca certificate" "Create a self signed certificate" "Create a certificate signing request" "Create a certificate revocation list" "Sign a certificate" "Revoke a certificate" "Verify a certificate" "Print content of a certificate" "Export a certificate to PKCS#12" "Change CA" "Split private key" "Combine private key" "Shred private key" "Quit")
 #
 #   Read CA variables (path, path to files, etc.) and check file structure
 #
@@ -203,43 +213,49 @@ PS3="Select an option: "
 select opt in "${MAINMENU[@]}"
 do
     case $REPLY in 
-        1)  # Create a self signed certificate
+	1)  # Create root ca private key
+	    create_root_ca_private_key
+	    ;;
+        2)  # Create root certificate
+	    create_root_certificate
+	    ;;
+        3)  # Create a self signed certificate
             ssl_create_selfsigned_cert 
             ;;
-        2)  # Create a certificate signing request
+        4)  # Create a certificate signing request
             ssl_create_signing_request
             ;;
-        3)  # Create a certificate revocation list
+        5)  # Create a certificate revocation list
             ssl_create_crl 
             ;;
-        4)  # Sign a certificate"
+        6)  # Sign a certificate"
             ssl_sign_certificate
             ;;
-        5)  # Revoke a certificate"
+        7)  # Revoke a certificate"
             ssl_revoke_cert
             ;;
-        6)  # Verify/Display a certificate 
+        8)  # Verify/Display a certificate 
             ssl_verify_cert
             ;;
-        7)  # Print content of a certificate
+        9)  # Print content of a certificate
             ssl_print_cert
             ;;
-        8)  # Convert a certificate
+        10) # Convert a certificate
             ssl_export_cert
             ;;
-        9)  # Change CA 
+        11) # Change CA 
             change_ca
             ;;
-        10) # Split private key
+        12) # Split private key
             ssl_split_key
             ;;
-        11) # Combine private key
+        13) # Combine private key
             ssl_combine_key
             ;;
-        12) # Delete private key (shred)
+        14) # Delete private key (shred)
             ssl_shred_key
             ;;
-        13) # Quit
+        15) # Quit
             exit 0
             ;;
         *)  # invalid option  

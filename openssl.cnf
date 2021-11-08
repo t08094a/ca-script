@@ -88,7 +88,7 @@ emailAddress        = optional
 
 ####################################################################
 [ req ]
-default_bits        = 2048
+default_bits        = 4096
 default_keyfile     = privkey.pem
 distinguished_name  = req_distinguished_name
 attributes          = req_attributes
@@ -97,20 +97,21 @@ string_mask = utf8only
 
 ####################################################################
 [ req_distinguished_name ]
-countryName             = Country Name (2 letter code)
-countryName_default     = XX
+countryName             = DE
+countryName_default     = DE
 countryName_min         = 2
 countryName_max         = 2
-stateOrProvinceName     = State or Province Name (full name)
-stateOrProvinceName_default = Some-State
-localityName            = Locality Name (eg, city)
-0.organizationName      = Organization Name (eg, company)
-0.organizationName_default  = Example Organisation      # CHANGE THIS
-organizationalUnitName  = Organizational Unit Name (eg, section)
+stateOrProvinceName     = Bavaria
+stateOrProvinceName_default = Bavaria
+localityName            = Ipsheim
+localityName_default    = Some-Town
+0.organizationName      = Faehnlein
+0.organizationName_default  = Faehnlein
+organizationalUnitName  =  # Organizational Unit Name (eg, section)
 # organizationalUnitName_default =
-commonName              = Common Name (e.g. server FQDN or YOUR name)
+commonName              = faehnlein-ipsheim.de # Common Name (e.g. server FQDN or YOUR name)
 commonName_max          = 64
-emailAddress            = Email Address
+emailAddress            = jochen@faehnlein-ipsheim.de # Email Address
 emailAddress_max        = 64
 
 ####################################################################
@@ -153,12 +154,12 @@ crlDistributionPoints   = URI:http://crl1.example.com/my.crl # CHANGE THIS
 ####################################################################
 [ user_cert ]
 basicConstraints        = CA:FALSE
-# Feel free to add "dataEncipherment" or "keysAgreement"
-keyUsage                = nonRepudiation, digitalSignature, keyEncipherment
+# Feel free to add "dataEncipherment" or "keyAgreement"
+keyUsage                = digitalSignature, keyEncipherment
+extendedKeyUsage        = clientAuth, emailProtection, codeSigning
 subjectKeyIdentifier    = hash
 authorityKeyIdentifier  = keyid,issuer
 subjectAltName          = email:copy
-extendedKeyUsage        = clientAuth, emailProtection, codeSigning
 # URI of the CA certificate 
 authorityInfoAccess     = caIssuers;URI:http://my.ca/ca.html # CHANGE THIS
 # URI of the CRL 
@@ -167,12 +168,25 @@ crlDistributionPoints   = URI:http://crl1.example.com/my.crl # CHANGE THIS
 ####################################################################
 [ server_cert ]
 basicConstraints        = CA:FALSE
-keyUsage                = nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment
+keyUsage                = digitalSignature, keyEncipherment
 extendedKeyUsage        = serverAuth
 # add subject Altname
 # IMPORTANT: You have to set the environment variable "ALTNAME", e.g.
 # export ALTNAME="DNS:www.example.com, DNS:www2.example.com"
 subjectAltName          = $ENV::ALTNAME
+# URI of the CA certificate 
+authorityInfoAccess     = caIssuers;URI:http://my.ca/ca.html # CHANGE THIS
+# URI of the CRL 
+crlDistributionPoints   = URI:http://crl1.example.com/my.crl # CHANGE THIS
+
+####################################################################
+[ openvpn_client_cert ]
+basicConstraints        = CA:FALSE
+keyUsage                = digitalSignature, keyAgreement
+extendedKeyUsage        = clientAuth
+subjectKeyIdentifier    = hash
+authorityKeyIdentifier  = keyid,issuer
+subjectAltName          = email:copy
 # URI of the CA certificate 
 authorityInfoAccess     = caIssuers;URI:http://my.ca/ca.html # CHANGE THIS
 # URI of the CRL 
@@ -199,7 +213,7 @@ signer_key      = $dir/private/tsakey.pem # The TSA private key (optional)
 default_policy  = tsa_policy1       # Policy if request did not specify it
                                     # (optional)
 other_policies  = tsa_policy2, tsa_policy3  # acceptable policies (optional)
-digests         = sha1              # Acceptable message digests (mandatory)
+digests         = sha1, sha256, sha384, sha512 # Acceptable message digests (mandatory)
 accuracy        = secs:1, millisecs:500, microsecs:100  # (optional)
 clock_precision_digits  = 0 # number of digits after dot. (optional)
 ordering        = yes               # Is ordering defined for timestamps?

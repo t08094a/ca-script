@@ -121,12 +121,16 @@ check_ca_file_structure()
 
 create_root_ca_private_key()
 {
-    openssl genrsa -aes256 -out $CURRENTCAPRIVATEKEY $KEYSIZE
+    openssl genrsa -aes256 -out $CURRENTCAPRIVATEKEY 4096 # $KEYSIZE
+    chmod 400 $CURRENTCAPRIVATEKEY 
 }
 
 create_root_certificate()
 {
-    openssl req -new -x509 -key $CURRENTCAPRIVATEKEY -out $CURRENTCACERT -set_serial 0
+    openssl req -config $OPENSSLCONF \
+	    -new -x509 -sha256 -extensions root_ca -set_serial 0 \
+	    -key $CURRENTCAPRIVATEKEY \
+	    -out $CURRENTCACERT
 }
 
 ###############################################################################

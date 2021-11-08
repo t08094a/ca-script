@@ -22,7 +22,7 @@ certs       = $dir/certs     # Where the issued certs are kept
 crl_dir     = $dir/crl       # Where the issued crl are kept
 database    = $dir/index.txt # database index file.
 #unique_subject = no         # Set to 'no' to allow creation of
-                             # several ctificates with same subject.
+                             # several certs with same subject.
 new_certs_dir   = $dir/newcerts  # default place for new certs.
 certificate = $dir/rootca.crt   # The CA certificate
 serial      = $dir/serial       # The current serial number
@@ -31,14 +31,17 @@ crlnumber   = $dir/crlnumber    # the current crl number
 crl         = $dir/crl.pem      # The current CRL
 private_key = $dir/private/rootca.key   # The private key
 RANDFILE    = $dir/private/.rootca.rand # private random number file
-x509_extensions = user_cert     # The extentions to add to the cert
+x509_extensions = user_cert     # The extensions to add to the cert
+
+# Comment out the following two lines for the "traditional"
+# (and highly broken) format.
 name_opt    = ca_default        # Subject Name options
 cert_opt    = ca_default        # Certificate field options
 default_days    = 3650          # how long to certify for
 default_crl_days= 30            # how long before next CRL
 default_md      = sha512        # use public key default MD
 preserve        = no            # keep passed DN ordering
-policy      = policy_anything   # CHANGE THIS
+policy          = policy_anything   # CHANGE THIS
 
 ####################################################################
 [ CA_SubCA ]
@@ -59,8 +62,12 @@ name_opt    = ca_default    # Subject Name options
 cert_opt    = ca_default    # Certificate field options
 default_days    = 3650      # how long to certify for
 default_crl_days= 30        # how long before next CRL
-default_md  = sha512        # use public key default MD
+default_md  = default       # use public key default MD
 preserve    = no            # keep passed DN ordering
+
+# A few difference way of specifying how similar the request should look
+# For type CA, the listed attributes must be the same, and the optional
+# and supplied fields are just that :-)
 policy      = policy_match  # CHANGE THIS
 
 ####################################################################
@@ -82,7 +89,7 @@ countryName         = optional
 stateOrProvinceName = optional
 localityName        = optional
 organizationName    = optional
-organizationalUnitName  = optional
+organizationalUnitName = optional
 commonName          = supplied
 emailAddress        = optional
 
@@ -92,24 +99,33 @@ default_bits        = 4096
 default_keyfile     = privkey.pem
 distinguished_name  = req_distinguished_name
 attributes          = req_attributes
-x509_extensions     = root_ca   # The extentions to add to the self signed cert
+x509_extensions     = root_ca   # The extensions to add to the self signed cert
+
+# This sets a mask for permitted string types. There are several options.
+# default: PrintableString, T61String, BMPString.
+# pkix     : PrintableString, BMPString (PKIX recommendation before 2004)
+# utf8only: only UTF8Strings (PKIX recommendation after 2004).
+# nombstr : PrintableString, T61String (no BMPStrings or UTF8Strings).
+# MASK:XXXX a literal mask value.
+# WARNING: ancient versions of Netscape crash on BMPStrings or UTF8Strings.
 string_mask = utf8only
 
 ####################################################################
 [ req_distinguished_name ]
-countryName             = DE
+countryName             = Country Name (2 letter code)
 countryName_default     = DE
 countryName_min         = 2
 countryName_max         = 2
-stateOrProvinceName     = Bavaria
+stateOrProvinceName     = State or Province Name (full name)
 stateOrProvinceName_default = Bavaria
-localityName            = Ipsheim
-localityName_default    = Some-Town
-0.organizationName      = Faehnlein
+localityName            = Locality Name (eg, city)
+localityName_default    = Ipsheim
+0.organizationName      = Organization Name (eg, company)
 0.organizationName_default  = Faehnlein
-organizationalUnitName  =  # Organizational Unit Name (eg, section)
+organizationalUnitName  = Organizational Unit Name (eg, section)
 # organizationalUnitName_default =
-commonName              = faehnlein-ipsheim.de # Common Name (e.g. server FQDN or YOUR name)
+# Common Name (e.g. server FQDN or YOUR name)
+commonName              = faehnlein-ipsheim.de
 commonName_max          = 64
 emailAddress            = jochen@faehnlein-ipsheim.de # Email Address
 emailAddress_max        = 64
@@ -131,8 +147,11 @@ keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 [ root_ca ]
 subjectKeyIdentifier    = hash
 authorityKeyIdentifier  = keyid:always,issuer
-basicConstraints        = critical, CA:true, pathlen:1
+basicConstraints        = critical, CA:true
 keyUsage                = cRLSign, keyCertSign
+# Some might want this also
+# nsCertType            = sslCA, emailCA
+# Include email address in subject alt name: another PKIX recommendation
 subjectAltName          = email:copy
 # URI of the CA certificate 
 authorityInfoAccess     = caIssuers;URI:http://my.ca/ca.html # CHANGE THIS
@@ -210,6 +229,7 @@ signer_cert     = $dir/tsacert.pem  # The TSA signing certificate
 certs           = $dir/cacert.pem   # Certificate chain to include in reply
                                     # (optional)
 signer_key      = $dir/private/tsakey.pem # The TSA private key (optional)
+signer_digest   = sha256            # Signing digest to use. (Optional)
 default_policy  = tsa_policy1       # Policy if request did not specify it
                                     # (optional)
 other_policies  = tsa_policy2, tsa_policy3  # acceptable policies (optional)
@@ -222,3 +242,5 @@ tsa_name        = yes               # Must the TSA name be included in the reply
                                     # (optional, default: no)
 ess_cert_id_chain = no              # Must the ESS cert id chain be included?
                                     # (optional, default: no)
+ess_cert_id_alg    = sha1              # algorithm to compute certificate
+                    # identifier (optional, default: sha1)
